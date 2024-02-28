@@ -27,13 +27,13 @@ public class PhysicsPicker : MonoBehaviour
             Ray ray = m_cam.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask)) // Find object the mouse has clicked on.
             { 
-                Ragdoll ragdoll = hit.collider.GetComponentInParent<Ragdoll>();
+                Ragdoll ragdoll = hit.transform.GetComponentInParent<Ragdoll>();
                 if (ragdoll)
                 {
                     ragdoll.RagdollToggle = true; // Enable ragdoll.
                 }
 
-                Rigidbody body = hit.collider.GetComponent<Rigidbody>();
+                Rigidbody body = hit.transform.GetComponent<Rigidbody>();
                 if (body)
                 {
                     body.AddForce(ray.direction * force); // Push the object.

@@ -18,6 +18,8 @@ public class CharacterMover : MonoBehaviour
     private bool m_jumpInput = false;
     private bool m_crouchInput = false;
 
+    private bool m_isCrouching = false;
+
     [SerializeField] private Vector3 m_velocity = Vector3.zero;
     [SerializeField] private bool m_isGrounded = false;
 
@@ -33,14 +35,14 @@ public class CharacterMover : MonoBehaviour
     private void Update()
     {
         // Get input.
-        m_moveInput.x = Input.GetAxis("Horizontal");
-        m_moveInput.y = Input.GetAxis("Vertical");
+        m_moveInput.x = Input.GetAxisRaw("Horizontal");
+        m_moveInput.y = Input.GetAxisRaw("Vertical");
         m_jumpInput = Input.GetButton("Jump");
         m_crouchInput = Input.GetKey(KeyCode.LeftControl);
 
         m_animator.SetFloat("Forwards", m_moveInput.y);
         m_animator.SetBool("Jump", !m_isGrounded);
-        m_animator.SetBool("Crouch", m_crouchInput);
+        m_animator.SetBool("Crouch", m_isCrouching);
     }
 
     private void FixedUpdate()
@@ -57,7 +59,7 @@ public class CharacterMover : MonoBehaviour
         // Calculate movement vector based on camera's transforms and adjusted to player's speed.
         delta = (m_moveInput.x * camRight + m_moveInput.y * camForward) * speed;
 
-        if (m_isGrounded || m_moveInput.x != 0.0f || m_moveInput.y != 0.0f)
+        if (m_isGrounded || m_moveInput.x != 0.0f || m_moveInput.y != 0.0f) // On ground and recieving player input.
         {
             // Apply movement vector to velocity on player input or on ground.
             m_velocity.x = delta.x;
@@ -75,7 +77,7 @@ public class CharacterMover : MonoBehaviour
 
         if (!m_isGrounded)
             m_hitDirection = Vector3.zero; // Reset hit direction when in air.
-        if (m_moveInput.x == 0 && m_moveInput.y == 0) // No player input.
+        if (m_moveInput.x == 0.0f && m_moveInput.y == 0.0f) // No player input.
         {
             // Slide character off of object if standing on edge.
             Vector3 horizontalHitDirection = m_hitDirection;
@@ -83,6 +85,16 @@ public class CharacterMover : MonoBehaviour
             float displacement = horizontalHitDirection.magnitude;
             if (displacement > 0.0f)
                 m_velocity -= 0.2f * horizontalHitDirection / displacement;
+        }
+
+        // Do crouch.
+        if (m_crouchInput && m_isGrounded && m_moveInput.x == 0.0f && m_moveInput.y == 0.0f)
+        {
+            m_isCrouching = true;
+        }
+        else
+        {
+            m_isCrouching = false;
         }
 
         m_cc.Move(m_velocity * Time.fixedDeltaTime); // Apply velocity to object.
